@@ -3,1219 +3,794 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caracterización Satelital de los Humedales | Municipio Simón Bolívar - Anzoátegui</title>
-    <meta name="description" content="Caracterización satelital de los humedales del Municipio Simón Bolívar, Estado Anzoátegui. Análisis con teledetección y sensores remotos.">
+    <title>Caracterización Geoespacial de los Humedales | Simón Bolívar - Anzoátegui</title>
+    <meta name="description" content="Caracterización satelital de los humedales del Municipio Simón Bolívar, Estado Anzoátegui.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
     <style>
-        :root {
-            --primary: #0d4f4f;
-            --primary-dark: #083636;
-            --secondary: #1a7a6d;
-            --accent: #2dd4bf;
-            --light: #f0fdfa;
-            --gray: #64748b;
-            --dark: #0f172a;
-            --white: #ffffff;
-            --shadow: 0 10px 40px -10px rgba(13, 79, 79, 0.15);
-            --radius: 12px;
+        :root{--primary:#0d4f4f;--primary-dark:#083636;--secondary:#1a7a6d;--accent:#2dd4bf;--light:#f0fdfa;--gray:#64748b;--dark:#0f172a;--white:#fff;--shadow:0 10px 40px -10px rgba(13,79,79,.15);--radius:12px}
+        *{margin:0;padding:0;box-sizing:border-box}
+        html{scroll-behavior:smooth}
+        body{font-family:Inter,system-ui,sans-serif;color:var(--dark);line-height:1.6;background:var(--white)}
+        h1,h2,h3,h4{font-family:'Playfair Display',serif;font-weight:700;line-height:1.2}
+        a{text-decoration:none;color:inherit}
+        img{max-width:100%;display:block}
+        .container{width:100%;max-width:1200px;margin:0 auto;padding:0 24px}
+        header{position:fixed;top:0;left:0;width:100%;z-index:1000;background:rgba(13,79,79,.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.08);transition:.3s}
+        header.scrolled{background:rgba(8,54,54,.98);box-shadow:0 4px 30px rgba(0,0,0,.2)}
+        .nav-container{display:flex;justify-content:space-between;align-items:center;height:72px}
+        .logo{display:flex;align-items:center;gap:12px;color:#fff;font-weight:600;font-size:1.05rem}
+        .logo-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--accent),var(--secondary));border-radius:10px;display:flex;align-items:center;justify-content:center}
+        .logo-icon svg{width:22px;height:22px;stroke:#fff;stroke-width:2;fill:none}
+        nav ul{display:flex;list-style:none;gap:8px}
+        nav a{color:rgba(255,255,255,.85);font-size:.92rem;font-weight:500;padding:8px 16px;border-radius:8px;transition:.25s}
+        nav a:hover{color:#fff;background:rgba(255,255,255,.1)}
+        .menu-toggle{display:none;background:none;border:none;color:#fff;cursor:pointer;padding:4px}
+        .hero{min-height:100vh;background:linear-gradient(135deg,rgba(8,54,54,.75),rgba(13,79,79,.65)),url('humedales.png') center/cover no-repeat;display:flex;align-items:center;position:relative;color:#fff;padding-top:72px}
+        .hero-content{max-width:780px}
+        .hero-badge{display:inline-block;background:rgba(45,212,191,.2);color:var(--accent);font-size:.85rem;font-weight:600;padding:6px 16px;border-radius:50px;margin-bottom:24px;border:1px solid rgba(45,212,191,.3)}
+        .hero h1{font-size:clamp(2.2rem,4.5vw,3.2rem);margin-bottom:20px;line-height:1.2;max-width:780px}
+        .hero h1 span{color:var(--accent)}
+        .hero p{font-size:1.15rem;color:rgba(255,255,255,.9);margin-bottom:36px;max-width:560px;font-weight:300}
+        .hero-buttons{display:flex;gap:16px;flex-wrap:wrap}
+        .btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:10px;font-weight:600;font-size:.95rem;transition:.3s;cursor:pointer;border:none}
+        .btn-primary{background:var(--accent);color:var(--primary-dark)}
+        .btn-primary:hover{background:#5eead4;transform:translateY(-2px);box-shadow:0 8px 25px rgba(45,212,191,.35)}
+        .btn-outline{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.4)}
+        .btn-outline:hover{border-color:#fff;background:rgba(255,255,255,.1)}
+        section{padding:100px 0}
+        .section-header{text-align:center;max-width:700px;margin:0 auto 60px}
+        .section-header .label{display:inline-block;color:var(--secondary);font-size:.85rem;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px}
+        .section-header h2{font-size:clamp(2rem,4vw,2.6rem);color:var(--primary-dark);margin-bottom:16px}
+        .section-header p{color:var(--gray);font-size:1.05rem}
+        .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+        .about-content h3{font-size:1.7rem;color:var(--primary);margin-bottom:20px}
+        .about-content p{color:var(--gray);margin-bottom:16px}
+        .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:36px}
+        .stat-card{background:var(--light);padding:24px 16px;border-radius:var(--radius);text-align:center;border:1px solid rgba(13,79,79,.08)}
+        .stat-card .number{font-size:1.9rem;font-weight:700;color:var(--primary);font-family:'Playfair Display',serif}
+        .stat-card .label{font-size:.85rem;color:var(--gray);margin-top:4px}
+        .about-image{position:relative;border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+        .about-image img{width:100%;height:480px;object-fit:cover}
+        .location{background:linear-gradient(180deg,var(--light),#fff)}
+        .location-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:50px;align-items:start}
+        .location-card{background:#fff;border-radius:16px;padding:32px;box-shadow:var(--shadow);border:1px solid rgba(13,79,79,.06)}
+        .location-card h3{font-size:1.4rem;color:var(--primary);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+        .info-list{list-style:none}
+        .info-list li{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid #f1f5f9}
+        .info-list li:last-child{border-bottom:none}
+        .info-list .icon{width:40px;height:40px;background:var(--light);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--secondary);flex-shrink:0}
+        .info-list .icon svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.8;fill:none}
+        .info-list strong{display:block;color:var(--dark);font-size:.95rem}
+        .info-list span{color:var(--gray);font-size:.9rem}
+        .map-placeholder{background:linear-gradient(135deg,#0d4f4f,#1a7a6d);border-radius:16px;height:420px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;position:relative;overflow:hidden}
+        .map-placeholder .icon svg{width:56px;height:56px;stroke:#fff;stroke-width:1.5;fill:none}
+        .map-placeholder h4{font-size:1.3rem;margin:12px 0 8px}
+        .map-placeholder p{opacity:.8;font-size:.95rem;max-width:260px}
+        .method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+        .method-card{background:#fff;border-radius:16px;padding:36px 28px;border:1px solid #e2e8f0;transition:.3s;position:relative;overflow:hidden}
+        .method-card:hover{transform:translateY(-6px);box-shadow:var(--shadow);border-color:transparent}
+        .method-card .num{position:absolute;top:20px;right:24px;font-size:3rem;font-weight:700;color:rgba(13,79,79,.06);font-family:'Playfair Display',serif}
+        .method-icon{width:56px;height:56px;background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:24px}
+        .method-icon svg{width:26px;height:26px;stroke:#fff;stroke-width:1.8;fill:none}
+        .method-card h3{font-size:1.25rem;color:var(--primary-dark);margin-bottom:12px}
+        .method-card p{color:var(--gray);font-size:.95rem}
+        /* MAP SECTION */
+        .map-section{background:#0f172a;color:#fff;padding:80px 0 60px}
+        .map-section .section-header .label{color:var(--accent)}
+        .map-section .section-header h2{color:#fff}
+        .map-section .section-header p{color:rgba(255,255,255,.7)}
+        .map-wrapper{background:#1e293b;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.08);box-shadow:0 20px 50px rgba(0,0,0,.4)}
+        .map-toolbar{display:flex;flex-wrap:wrap;gap:10px;padding:16px 20px;background:#0f172a;border-bottom:1px solid rgba(255,255,255,.08);align-items:center}
+        .map-toolbar .tool-label{font-size:.85rem;color:rgba(255,255,255,.6);margin-right:8px;font-weight:500}
+        .tool-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;background:#1e293b;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:.9rem;font-weight:500;cursor:pointer;transition:.2s}
+        .tool-btn:hover{background:#334155;border-color:var(--accent)}
+        .tool-btn.active{background:var(--secondary);border-color:var(--accent)}
+        .tool-btn svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none}
+        .map-info-bar{display:flex;flex-wrap:wrap;gap:20px;padding:12px 20px;background:rgba(13,79,79,.4);font-size:.9rem;color:rgba(255,255,255,.85);border-bottom:1px solid rgba(255,255,255,.06)}
+        .map-info-bar strong{color:var(--accent)}
+        #map{width:100%;height:560px;background:#1e293b;min-height:360px}
+        .map-legend{display:flex;flex-wrap:wrap;gap:20px;padding:14px 20px;background:#0f172a;border-top:1px solid rgba(255,255,255,.08);font-size:.85rem;color:rgba(255,255,255,.75)}
+        .legend-item{display:flex;align-items:center;gap:8px}
+        .legend-color{width:18px;height:12px;border-radius:3px;border:1px solid rgba(255,255,255,.3)}
+        .legend-color.humedal{background:rgba(45,212,191,.45);border-color:#2dd4bf}
+        .results{background:var(--primary-dark);color:#fff}
+        .results .section-header .label{color:var(--accent)}
+        .results .section-header h2{color:#fff}
+        .results .section-header p{color:rgba(255,255,255,.7)}
+        .results-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+        .result-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:32px 24px;text-align:center;transition:.3s}
+        .result-card:hover{background:rgba(255,255,255,.09);transform:translateY(-4px)}
+        .result-card .value{font-size:2.4rem;font-weight:700;color:var(--accent);font-family:'Playfair Display',serif;margin-bottom:8px}
+        .result-card .desc{font-size:.95rem;color:rgba(255,255,255,.75)}
+        .gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+        .gallery-item{position:relative;border-radius:14px;overflow:hidden;height:260px;cursor:pointer}
+        .gallery-item img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+        .gallery-item:hover img{transform:scale(1.08)}
+        .gallery-item .overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(8,54,54,.85),transparent 60%);display:flex;align-items:flex-end;padding:20px;opacity:0;transition:.3s}
+        .gallery-item:hover .overlay{opacity:1}
+        .gallery-item .overlay span{color:#fff;font-weight:500;font-size:.95rem}
+        .contact{background:var(--light)}
+        .contact-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:50px}
+        .contact-info h3{font-size:1.6rem;color:var(--primary);margin-bottom:16px}
+        .contact-info p{color:var(--gray);margin-bottom:32px}
+        .contact-details{display:flex;flex-direction:column;gap:20px}
+        .contact-item{display:flex;gap:16px;align-items:flex-start}
+        .contact-item .icon{width:48px;height:48px;background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--secondary);box-shadow:0 4px 15px rgba(13,79,79,.08);flex-shrink:0}
+        .contact-item .icon svg{width:22px;height:22px;stroke:currentColor;stroke-width:1.8;fill:none}
+        .contact-item strong{display:block;color:var(--dark);margin-bottom:2px}
+        .contact-item span{color:var(--gray);font-size:.95rem}
+        .contact-form{background:#fff;padding:40px;border-radius:16px;box-shadow:var(--shadow)}
+        .form-group{margin-bottom:20px}
+        .form-group label{display:block;font-size:.9rem;font-weight:500;color:var(--dark);margin-bottom:8px}
+        .form-group input,.form-group textarea,.form-group select{width:100%;padding:13px 16px;border:1.5px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:.95rem;background:#f8fafc}
+        .form-group input:focus,.form-group textarea:focus,.form-group select:focus{outline:none;border-color:var(--secondary);background:#fff}
+        .form-group textarea{resize:vertical;min-height:120px}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+        footer{background:var(--primary-dark);color:rgba(255,255,255,.8);padding:60px 0 30px}
+        .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;margin-bottom:50px}
+        .footer-brand .logo{margin-bottom:16px}
+        .footer-brand p{font-size:.95rem;line-height:1.7;max-width:320px}
+        .footer-links h4{color:#fff;font-size:1.05rem;margin-bottom:20px;font-family:Inter,sans-serif;font-weight:600}
+        .footer-links ul{list-style:none}
+        .footer-links li{margin-bottom:10px}
+        .footer-links a{color:rgba(255,255,255,.7);font-size:.95rem;transition:.25s}
+        .footer-links a:hover{color:var(--accent)}
+        .footer-bottom{border-top:1px solid rgba(255,255,255,.1);padding-top:28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;font-size:.9rem}
+        @media(max-width:992px){.about-grid,.location-grid,.contact-grid{grid-template-columns:1fr}.method-grid{grid-template-columns:1fr 1fr}.results-grid{grid-template-columns:1fr 1fr}.gallery-grid{grid-template-columns:1fr 1fr}.footer-grid{grid-template-columns:1fr 1fr}#map{height:420px}}
+        @media(max-width:768px){nav ul{display:none;position:absolute;top:72px;left:0;width:100%;background:var(--primary-dark);flex-direction:column;padding:20px;gap:4px}nav ul.active{display:flex}.menu-toggle{display:block}.method-grid,.results-grid,.gallery-grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}.footer-grid{grid-template-columns:1fr}.hero-buttons{flex-direction:column}.btn{justify-content:center}#map{height:360px!important}.map-toolbar{flex-direction:column;align-items:stretch}#leyenda-tipos{flex:1 1 100%!important;border-left:none!important;border-top:1px solid rgba(255,255,255,.08)!important;flex-direction:row!important;flex-wrap:wrap!important}}
+    
+        /* Ocultar línea de predicción al dibujar (solo se ve el trazo real) */
+        .leaflet-draw-guide-dash { display: none !important; }
+
+        /* Sin relleno mientras se dibuja el polígono temporal */
+        .leaflet-interactive.leaflet-draw-temp {
+            fill-opacity: 0 !important;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
 
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-            color: var(--dark);
-            line-height: 1.6;
-            background: var(--white);
-        }
-
-        h1, h2, h3, h4 {
-            font-family: 'Playfair Display', serif;
-            font-weight: 700;
-            line-height: 1.2;
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        img {
-            max-width: 100%;
-            display: block;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
-
-        /* ========== HEADER ========== */
-        header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 1000;
-            background: rgba(13, 79, 79, 0.95);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-            transition: all 0.3s ease;
-        }
-
-        header.scrolled {
-            background: rgba(8, 54, 54, 0.98);
-            box-shadow: 0 4px 30px rgba(0,0,0,0.2);
-        }
-
-        .nav-container {
+        .map-layout {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 72px;
+            min-height: 560px;
+            align-items: stretch;
         }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: white;
-            font-weight: 600;
-            font-size: 1.05rem;
-        }
-
-        .logo-icon {
-            width: 42px;
-            height: 42px;
-            background: linear-gradient(135deg, var(--accent), var(--secondary));
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-        }
-
-        nav ul {
-            display: flex;
-            list-style: none;
-            gap: 8px;
-        }
-
-        nav a {
-            color: rgba(255,255,255,0.85);
-            font-size: 0.92rem;
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.25s ease;
-        }
-
-        nav a:hover {
-            color: white;
-            background: rgba(255,255,255,0.1);
-        }
-
-        .menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.6rem;
-            cursor: pointer;
-        }
-
-        /* ========== HERO ========== */
-        .hero {
-            min-height: 100vh;
-            background: linear-gradient(135deg, rgba(8,54,54,0.75) 0%, rgba(13,79,79,0.65) 100%),
-                        url('humedales.png') center/cover no-repeat;
-            display: flex;
-            align-items: center;
-            position: relative;
-            color: white;
-            padding-top: 72px;
-        }
-
-        .hero-content {
-            max-width: 780px;
-        }
-
-        .hero-badge {
-            display: inline-block;
-            background: rgba(45, 212, 191, 0.2);
-            color: var(--accent);
-            font-size: 0.85rem;
-            font-weight: 600;
-            padding: 6px 16px;
-            border-radius: 50px;
-            margin-bottom: 24px;
-            border: 1px solid rgba(45, 212, 191, 0.3);
-            letter-spacing: 0.5px;
-        }
-
-        .hero h1 {
-            font-size: clamp(2.4rem, 5vw, 3.6rem);
-            margin-bottom: 20px;
-            letter-spacing: -0.5px;
-        }
-
-        .hero h1 span {
-            color: var(--accent);
-        }
-
-        .hero p {
-            font-size: 1.15rem;
-            color: rgba(255,255,255,0.9);
-            margin-bottom: 36px;
-            max-width: 560px;
-            font-weight: 300;
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 14px 28px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: none;
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            color: var(--primary-dark);
-        }
-
-        .btn-primary:hover {
-            background: #5eead4;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(45, 212, 191, 0.35);
-        }
-
-        .btn-outline {
-            background: transparent;
-            color: white;
-            border: 2px solid rgba(255,255,255,0.4);
-        }
-
-        .btn-outline:hover {
-            border-color: white;
-            background: rgba(255,255,255,0.1);
-        }
-
-        /* ========== SECTIONS ========== */
-        section {
-            padding: 100px 0;
-        }
-
-        .section-header {
-            text-align: center;
-            max-width: 700px;
-            margin: 0 auto 60px;
-        }
-
-        .section-header .label {
-            display: inline-block;
-            color: var(--secondary);
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 12px;
-        }
-
-        .section-header h2 {
-            font-size: clamp(2rem, 4vw, 2.6rem);
-            color: var(--primary-dark);
-            margin-bottom: 16px;
-        }
-
-        .section-header p {
-            color: var(--gray);
-            font-size: 1.05rem;
-        }
-
-        /* ========== ABOUT ========== */
-        .about-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 60px;
-            align-items: center;
-        }
-
-        .about-content h3 {
-            font-size: 1.7rem;
-            color: var(--primary);
-            margin-bottom: 20px;
-        }
-
-        .about-content p {
-            color: var(--gray);
-            margin-bottom: 16px;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-top: 36px;
-        }
-
-        .stat-card {
-            background: var(--light);
-            padding: 24px 16px;
-            border-radius: var(--radius);
-            text-align: center;
-            border: 1px solid rgba(13, 79, 79, 0.08);
-        }
-
-        .stat-card .number {
-            font-size: 1.9rem;
-            font-weight: 700;
-            color: var(--primary);
-            font-family: 'Playfair Display', serif;
-        }
-
-        .stat-card .label {
-            font-size: 0.85rem;
-            color: var(--gray);
-            margin-top: 4px;
-        }
-
-        .about-image {
-            position: relative;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-        }
-
-        .about-image img {
-            width: 100%;
-            height: 480px;
-            object-fit: cover;
-        }
-
-        .about-image::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to top, rgba(13,79,79,0.3), transparent);
-        }
-
-        /* ========== LOCATION ========== */
-        .location {
-            background: linear-gradient(180deg, var(--light) 0%, white 100%);
-        }
-
-        .location-grid {
-            display: grid;
-            grid-template-columns: 1.1fr 0.9fr;
-            gap: 50px;
-            align-items: start;
-        }
-
-        .location-card {
-            background: white;
-            border-radius: 16px;
-            padding: 32px;
-            box-shadow: var(--shadow);
-            border: 1px solid rgba(13, 79, 79, 0.06);
-        }
-
-        .location-card h3 {
-            font-size: 1.4rem;
-            color: var(--primary);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .info-list {
-            list-style: none;
-        }
-
-        .info-list li {
-            display: flex;
-            gap: 14px;
-            padding: 14px 0;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .info-list li:last-child {
-            border-bottom: none;
-        }
-
-        .info-list .icon {
-            width: 40px;
-            height: 40px;
-            background: var(--light);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--secondary);
-            font-size: 1.1rem;
-            flex-shrink: 0;
-        }
-
-        .info-list strong {
-            display: block;
-            color: var(--dark);
-            font-size: 0.95rem;
-        }
-
-        .info-list span {
-            color: var(--gray);
-            font-size: 0.9rem;
-        }
-
-        .map-placeholder {
-            background: linear-gradient(135deg, #0d4f4f, #1a7a6d);
-            border-radius: 16px;
-            height: 420px;
+        .map-tools-panel {
+            flex: 0 0 240px;
+            background: #0f172a;
+            border-right: 1px solid rgba(255,255,255,.08);
+            padding: 18px 14px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
+            gap: 16px;
+            overflow-y: auto;
         }
-
-        .map-placeholder::before {
-            content: '';
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(45,212,191,0.2) 0%, transparent 70%);
-            top: -50px;
-            right: -50px;
-        }
-
-        .map-placeholder .icon {
-            font-size: 3.5rem;
-            margin-bottom: 16px;
-            opacity: 0.9;
-        }
-
-        .map-placeholder h4 {
-            font-size: 1.3rem;
-            margin-bottom: 8px;
-        }
-
-        .map-placeholder p {
-            opacity: 0.8;
-            font-size: 0.95rem;
-            max-width: 260px;
-        }
-
-        /* ========== METHODOLOGY ========== */
-        .method-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 28px;
-        }
-
-        .method-card {
-            background: white;
-            border-radius: 16px;
-            padding: 36px 28px;
-            border: 1px solid #e2e8f0;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .method-card:hover {
-            transform: translateY(-6px);
-            box-shadow: var(--shadow);
-            border-color: transparent;
-        }
-
-        .method-card .num {
-            position: absolute;
-            top: 20px;
-            right: 24px;
-            font-size: 3rem;
-            font-weight: 700;
-            color: rgba(13, 79, 79, 0.06);
-            font-family: 'Playfair Display', serif;
-        }
-
-        .method-icon {
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 14px;
+        .map-legend-panel {
+            flex: 0 0 180px;
+            background: #0f172a;
+            border-left: 1px solid rgba(255,255,255,.08);
+            padding: 18px 14px;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-            margin-bottom: 24px;
+            flex-direction: column;
+            gap: 12px;
         }
-
-        .method-card h3 {
-            font-size: 1.25rem;
-            color: var(--primary-dark);
-            margin-bottom: 12px;
-        }
-
-        .method-card p {
-            color: var(--gray);
-            font-size: 0.95rem;
-        }
-
-        /* ========== RESULTS ========== */
-        .results {
-            background: var(--primary-dark);
-            color: white;
-        }
-
-        .results .section-header .label {
-            color: var(--accent);
-        }
-
-        .results .section-header h2 {
-            color: white;
-        }
-
-        .results .section-header p {
-            color: rgba(255,255,255,0.7);
-        }
-
-        .results-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 24px;
-        }
-
-        .result-card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 32px 24px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .result-card:hover {
-            background: rgba(255,255,255,0.09);
-            transform: translateY(-4px);
-        }
-
-        .result-card .value {
-            font-size: 2.4rem;
-            font-weight: 700;
-            color: var(--accent);
-            font-family: 'Playfair Display', serif;
-            margin-bottom: 8px;
-        }
-
-        .result-card .desc {
-            font-size: 0.95rem;
-            color: rgba(255,255,255,0.75);
-        }
-
-        /* ========== GALLERY ========== */
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-
-        .gallery-item {
+        .map-center {
+            flex: 1 1 0;
+            min-width: 0;
             position: relative;
-            border-radius: 14px;
-            overflow: hidden;
-            height: 260px;
-            cursor: pointer;
         }
-
-        .gallery-item img {
+        .map-center #map {
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
+            min-height: 560px;
         }
-
-        .gallery-item:hover img {
-            transform: scale(1.08);
+        .panel-title {
+            font-size: .75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,.5);
         }
-
-        .gallery-item .overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to top, rgba(8,54,54,0.85), transparent 60%);
-            display: flex;
-            align-items: flex-end;
-            padding: 20px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .gallery-item:hover .overlay {
-            opacity: 1;
-        }
-
-        .gallery-item .overlay span {
-            color: white;
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
-
-        /* ========== CONTACT ========== */
-        .contact {
-            background: var(--light);
-        }
-
-        .contact-grid {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 50px;
-        }
-
-        .contact-info h3 {
-            font-size: 1.6rem;
-            color: var(--primary);
-            margin-bottom: 16px;
-        }
-
-        .contact-info p {
-            color: var(--gray);
-            margin-bottom: 32px;
-        }
-
-        .contact-details {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .contact-item {
-            display: flex;
-            gap: 16px;
-            align-items: flex-start;
-        }
-
-        .contact-item .icon {
-            width: 48px;
-            height: 48px;
-            background: white;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--secondary);
-            font-size: 1.2rem;
-            box-shadow: 0 4px 15px rgba(13,79,79,0.08);
-            flex-shrink: 0;
-        }
-
-        .contact-item strong {
+        .panel-label {
             display: block;
-            color: var(--dark);
-            margin-bottom: 2px;
-        }
-
-        .contact-item span {
-            color: var(--gray);
-            font-size: 0.95rem;
-        }
-
-        .contact-form {
-            background: white;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: var(--shadow);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--dark);
-            margin-bottom: 8px;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 13px 16px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 10px;
-            font-family: inherit;
-            font-size: 0.95rem;
-            transition: border-color 0.25s ease;
-            background: #f8fafc;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--secondary);
-            background: white;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 120px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        /* ========== FOOTER ========== */
-        footer {
-            background: var(--primary-dark);
-            color: rgba(255,255,255,0.8);
-            padding: 60px 0 30px;
-        }
-
-        .footer-grid {
-            display: grid;
-            grid-template-columns: 1.5fr 1fr 1fr;
-            gap: 40px;
-            margin-bottom: 50px;
-        }
-
-        .footer-brand .logo {
-            margin-bottom: 16px;
-        }
-
-        .footer-brand p {
-            font-size: 0.95rem;
-            line-height: 1.7;
-            max-width: 320px;
-        }
-
-        .footer-links h4 {
-            color: white;
-            font-size: 1.05rem;
-            margin-bottom: 20px;
-            font-family: 'Inter', sans-serif;
+            font-size: .8rem;
+            color: rgba(255,255,255,.65);
+            margin-bottom: 6px;
             font-weight: 600;
         }
-
-        .footer-links ul {
-            list-style: none;
+        .panel-select, .panel-input {
+            width: 100%;
+            background: #1e293b;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.15);
+            border-radius: 8px;
+            padding: 9px 11px;
+            font-size: .88rem;
         }
-
-        .footer-links li {
-            margin-bottom: 10px;
-        }
-
-        .footer-links a {
-            color: rgba(255,255,255,0.7);
-            font-size: 0.95rem;
-            transition: color 0.25s ease;
-        }
-
-        .footer-links a:hover {
-            color: var(--accent);
-        }
-
-        .footer-bottom {
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding-top: 28px;
+        .panel-check {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
-            font-size: 0.9rem;
+            gap: 8px;
+            font-size: .9rem;
+            color: rgba(255,255,255,.85);
+            cursor: pointer;
         }
-
-        /* ========== RESPONSIVE ========== */
-        @media (max-width: 992px) {
-            .about-grid,
-            .location-grid,
-            .contact-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .method-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .results-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .gallery-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .footer-grid {
-                grid-template-columns: 1fr 1fr;
-            }
+        .panel-check input { width: 16px; height: 16px; accent-color: #2dd4bf; }
+        .panel-btn {
+            width: 100%;
+            justify-content: flex-start;
+            margin-bottom: 8px;
         }
+        .panel-stats {
+            font-size: .88rem;
+            color: rgba(255,255,255,.8);
+            padding: 12px;
+            background: rgba(13,79,79,.35);
+            border-radius: 8px;
+            line-height: 1.7;
+        }
+        .panel-stats strong { color: #2dd4bf; }
+        .panel-hint {
+            font-size: .75rem;
+            color: rgba(255,255,255,.4);
+            line-height: 1.45;
+        }
+        .panel-group { display: flex; flex-direction: column; }
 
-        @media (max-width: 768px) {
-            nav ul {
-                display: none;
-                position: absolute;
-                top: 72px;
-                left: 0;
+        @media (max-width: 900px) {
+            .map-layout { flex-direction: column; }
+            .map-tools-panel, .map-legend-panel {
+                flex: none;
                 width: 100%;
-                background: var(--primary-dark);
-                flex-direction: column;
-                padding: 20px;
-                gap: 4px;
+                border: none;
+                border-bottom: 1px solid rgba(255,255,255,.08);
             }
-
-            nav ul.active {
-                display: flex;
+            .map-legend-panel {
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: center;
+                border-bottom: none;
+                border-top: 1px solid rgba(255,255,255,.08);
             }
-
-            .menu-toggle {
-                display: block;
-            }
-
-            .method-grid,
-            .results-grid,
-            .gallery-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .stats {
-                grid-template-columns: 1fr;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .footer-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .hero-buttons {
-                flex-direction: column;
-            }
-
-            .btn {
-                justify-content: center;
-            }
+            .map-center #map { min-height: 400px; height: 400px; }
         }
+
     </style>
 </head>
 <body>
+<header id="header">
+    <div class="container nav-container">
+        <a href="#" class="logo">
+            <div class="logo-icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+            <span>Humedales para la vida</span>
+        </a>
+        <nav>
+            <ul id="nav-menu">
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#proyecto">Proyecto</a></li>
+                <li><a href="#ubicacion">Ubicación</a></li>
+                <li><a href="#metodologia">Metodología</a></li>
+                <li><a href="#mapa">Mapa</a></li>
+                <li><a href="#resultados">Resultados</a></li>
+                <li><a href="#galeria">Galería</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+            </ul>
+        </nav>
+        <button class="menu-toggle" id="menu-toggle" aria-label="Menú"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    </div>
+</header>
 
-    <!-- HEADER -->
-    <header id="header">
-        <div class="container nav-container">
-            <a href="#" class="logo">
-                <div class="logo-icon">🛰️</div>
-                <span>Humedales Simón Bolívar</span>
-            </a>
-            <nav>
-                <ul id="nav-menu">
-                    <li><a href="#inicio">Inicio</a></li>
-                    <li><a href="#proyecto">Proyecto</a></li>
-                    <li><a href="#ubicacion">Ubicación</a></li>
-                    <li><a href="#metodologia">Metodología</a></li>
-                    <li><a href="#resultados">Resultados</a></li>
-                    <li><a href="#galeria">Galería</a></li>
-                    <li><a href="#contacto">Contacto</a></li>
+<section class="hero" id="inicio">
+    <div class="container">
+        <div class="hero-content">
+            <span class="hero-badge">Conservación · Teledetección</span>
+            <h1>Caracterización Geoespacial de los <span>Humedales</span></h1>
+            <p>Municipio Simón Bolívar, Estado Anzoátegui. Sistema de información para el inventario, monitoreo y conservación de ecosistemas de humedal.</p>
+            <div class="hero-buttons">
+                <a href="#proyecto" class="btn btn-primary">Conocer el Proyecto</a>
+                <a href="#mapa" class="btn btn-outline">Ir al Mapa</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="proyecto">
+    <div class="container">
+        <div class="section-header">
+            <span class="label">Sobre el Estudio</span>
+            <h2>Caracterización Integral de Humedales</h2>
+            <p>Aplicación de técnicas de teledetección para el inventario, clasificación y monitoreo de los sistemas de humedales del municipio.</p>
+        </div>
+        <div class="about-grid">
+            <div class="about-content">
+                <h3>Objetivo del Proyecto</h3>
+                <p>Determinar la extensión, tipología y estado de conservación de los humedales presentes en el Municipio Simón Bolívar mediante el uso de imágenes satelitales ópticas y de radar, índices espectrales y clasificación supervisada.</p>
+                <p>Este estudio aporta información base para la planificación territorial, la gestión ambiental y el cumplimiento de compromisos internacionales relacionados con la conservación de humedales.</p>
+                <div class="stats">
+                    <div class="stat-card"><div class="number">~12</div><div class="label">Humedales identificados</div></div>
+                    <div class="stat-card"><div class="number">Sentinel-2</div><div class="label">Sensor principal</div></div>
+                    <div class="stat-card"><div class="number">10 m</div><div class="label">Resolución espacial</div></div>
+                </div>
+            </div>
+            <div class="about-image">
+                <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80" alt="Paisaje de humedal">
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="location" id="ubicacion">
+    <div class="container">
+        <div class="section-header">
+            <span class="label">Área de Estudio</span>
+            <h2>Municipio Simón Bolívar</h2>
+            <p>Estado Anzoátegui, Venezuela. Ubicación estratégica en la región nororiental del país.</p>
+        </div>
+        <div class="location-grid">
+            <div class="location-card">
+                <h3>Datos Geográficos</h3>
+                <ul class="info-list">
+                    <li><div class="icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></div><div><strong>Entidad Federal</strong><span>Estado Anzoátegui</span></div></li>
+                    <li><div class="icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/></svg></div><div><strong>Capital Municipal</strong><span>Barcelona / Zona metropolitana</span></div></li>
+                    <li><div class="icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg></div><div><strong>Ecosistemas prioritarios</strong><span>Humedales costeros, lagunas y sistemas fluviales</span></div></li>
+                    <li><div class="icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg></div><div><strong>Cobertura satelital</strong><span>Sentinel-2, Landsat 8/9</span></div></li>
                 </ul>
-            </nav>
-            <button class="menu-toggle" id="menu-toggle" aria-label="Menú">☰</button>
-        </div>
-    </header>
-
-    <!-- HERO -->
-    <section class="hero" id="inicio">
-        <div class="container">
-            <div class="hero-content">
-                <span class="hero-badge">Teledetección · Análisis Espacial</span>
-                <h1>Caracterización Satelital de los <span>Humedales</span></h1>
-                <p>Municipio Simón Bolívar, Estado Anzoátegui. Monitoreo y análisis de ecosistemas de humedal mediante sensores remotos de alta resolución.</p>
-                <div class="hero-buttons">
-                    <a href="#proyecto" class="btn btn-primary">Conocer el Proyecto</a>
-                    <a href="#resultados" class="btn btn-outline">Ver Resultados</a>
-                </div>
+            </div>
+            <div class="map-placeholder">
+                <div class="icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg></div>
+                <h4>Área de Estudio</h4>
+                <p>Municipio Simón Bolívar<br>Estado Anzoátegui</p>
+                <p style="margin-top:16px;font-size:.85rem;opacity:.7">Usa el mapa interactivo más abajo</p>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- PROYECTO -->
-    <section id="proyecto">
-        <div class="container">
-            <div class="section-header">
-                <span class="label">Sobre el Estudio</span>
-                <h2>Caracterización Integral de Humedales</h2>
-                <p>Aplicación de técnicas de teledetección para el inventario, clasificación y monitoreo de los sistemas de humedales del municipio.</p>
-            </div>
+<section id="metodologia">
+    <div class="container">
+        <div class="section-header">
+            <span class="label">Enfoque Técnico</span>
+            <h2>Metodología Satelital</h2>
+            <p>Flujo de trabajo basado en teledetección óptica y análisis de índices espectrales.</p>
+        </div>
+        <div class="method-grid">
+            <div class="method-card"><span class="num">01</span><div class="method-icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg></div><h3>Adquisición de Datos</h3><p>Imágenes Sentinel-2 y Landsat. Corrección atmosférica y series temporales.</p></div>
+            <div class="method-card"><span class="num">02</span><div class="method-icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><h3>Índices Espectrales</h3><p>NDWI, MNDWI, NDVI y AWEI para resaltar agua y vegetación hidrófila.</p></div>
+            <div class="method-card"><span class="num">03</span><div class="method-icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><h3>Clasificación</h3><p>Clasificación supervisada y validación con puntos de control.</p></div>
+            <div class="method-card"><span class="num">04</span><div class="method-icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></div><h3>Cartografía</h3><p>Mapas de cobertura y productos vectoriales listos para SIG.</p></div>
+            <div class="method-card"><span class="num">05</span><div class="method-icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div><h3>Análisis Temporal</h3><p>Detección de cambios interanuales y dinámica hidrológica.</p></div>
+            <div class="method-card"><span class="num">06</span><div class="method-icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><h3>Validación</h3><p>Trabajo de campo y contraste con bases de datos existentes.</p></div>
+        </div>
+    </div>
+</section>
 
-            <div class="about-grid">
-                <div class="about-content">
-                    <h3>Objetivo del Proyecto</h3>
-                    <p>Determinar la extensión, tipología y estado de conservación de los humedales presentes en el Municipio Simón Bolívar mediante el uso de imágenes satelitales ópticas y de radar, índices espectrales y clasificación supervisada.</p>
-                    <p>Este estudio aporta información base para la planificación territorial, la gestión ambiental y el cumplimiento de compromisos internacionales relacionados con la conservación de humedales.</p>
+<!-- MAPA -->
+<section class="map-section" id="mapa">
+    <div class="container">
+        <div class="section-header">
+            <span class="label">Herramienta de Caracterización</span>
+            <h2>Mapa de Delimitación de Humedales</h2>
+            <p>Utiliza las herramientas de dibujo para trazar polígonos que delimiten los humedales. Cada polígono representa una unidad de humedal.</p>
+        </div>
+        <div class="map-wrapper">
+            <div class="map-layout">
+                <!-- PANEL IZQUIERDO: herramientas -->
+                <aside class="map-tools-panel">
+                    <div class="panel-title">Inventario de herramientas</div>
 
-                    <div class="stats">
-                        <div class="stat-card">
-                            <div class="number">~12</div>
-                            <div class="label">Humedales identificados</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="number">Sentinel-2</div>
-                            <div class="label">Sensor principal</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="number">10 m</div>
-                            <div class="label">Resolución espacial</div>
-                        </div>
+                    <div class="panel-group">
+                        <label class="panel-label">Tipo de humedal</label>
+                        <select id="tipo-humedal" class="panel-select">
+                            <option value="marino">Marinos y costeros</option>
+                            <option value="continental">Continentales</option>
+                            <option value="artificial">Artificiales</option>
+                            <option value="otro">Otros (especificar)</option>
+                        </select>
+                        <input type="text" id="otro-especificar" class="panel-input" placeholder="Especificar tipo..." style="display:none;margin-top:8px;">
                     </div>
-                </div>
-                <div class="about-image">
-                    <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80" alt="Paisaje de humedal">
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- UBICACIÓN -->
-    <section class="location" id="ubicacion">
-        <div class="container">
-            <div class="section-header">
-                <span class="label">Área de Estudio</span>
-                <h2>Municipio Simón Bolívar</h2>
-                <p>Estado Anzoátegui, Venezuela. Ubicación estratégica en la región nororiental del país.</p>
-            </div>
-
-            <div class="location-grid">
-                <div class="location-card">
-                    <h3>📍 Datos Geográficos</h3>
-                    <ul class="info-list">
-                        <li>
-                            <div class="icon">🗺️</div>
-                            <div>
-                                <strong>Entidad Federal</strong>
-                                <span>Estado Anzoátegui</span>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="icon">🏙️</div>
-                            <div>
-                                <strong>Capital Municipal</strong>
-                                <span>Barcelona / Zona metropolitana</span>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="icon">📐</div>
-                            <div>
-                                <strong>Superficie aproximada</strong>
-                                <span>Municipio de importancia regional</span>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="icon">🌿</div>
-                            <div>
-                                <strong>Ecosistemas prioritarios</strong>
-                                <span>Humedales costeros, lagunas y sistemas fluviales</span>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="icon">📡</div>
-                            <div>
-                                <strong>Cobertura satelital</strong>
-                                <span>Sentinel-2, Landsat 8/9, series multitemporales</span>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="map-placeholder">
-                    <div class="icon">🛰️</div>
-                    <h4>Área de Estudio</h4>
-                    <p>Municipio Simón Bolívar<br>Estado Anzoátegui</p>
-                    <p style="margin-top: 16px; font-size: 0.85rem; opacity: 0.7;">Mapa interactivo disponible en versión completa</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- METODOLOGÍA -->
-    <section id="metodologia">
-        <div class="container">
-            <div class="section-header">
-                <span class="label">Enfoque Técnico</span>
-                <h2>Metodología Satelital</h2>
-                <p>Flujo de trabajo basado en teledetección óptica y análisis de índices espectrales para la detección y caracterización de humedales.</p>
-            </div>
-
-            <div class="method-grid">
-                <div class="method-card">
-                    <span class="num">01</span>
-                    <div class="method-icon">📡</div>
-                    <h3>Adquisición de Datos</h3>
-                    <p>Descarga y preprocesamiento de imágenes Sentinel-2 (10–20 m) y Landsat. Corrección atmosférica, mosaicos y series temporales.</p>
-                </div>
-                <div class="method-card">
-                    <span class="num">02</span>
-                    <div class="method-icon">📊</div>
-                    <h3>Índices Espectrales</h3>
-                    <p>Cálculo de NDWI, MNDWI, NDVI y AWEI para resaltar cuerpos de agua y vegetación hidrófila. Análisis de umbrales adaptativos.</p>
-                </div>
-                <div class="method-card">
-                    <span class="num">03</span>
-                    <div class="method-icon">🧩</div>
-                    <h3>Clasificación</h3>
-                    <p>Clasificación supervisada y no supervisada. Validación con puntos de control y evaluación de exactitud temática.</p>
-                </div>
-                <div class="method-card">
-                    <span class="num">04</span>
-                    <div class="method-icon">🗺️</div>
-                    <h3>Cartografía</h3>
-                    <p>Generación de mapas de cobertura de humedales, cambio temporal y productos vectoriales listos para SIG.</p>
-                </div>
-                <div class="method-card">
-                    <span class="num">05</span>
-                    <div class="method-icon">📈</div>
-                    <h3>Análisis Temporal</h3>
-                    <p>Detección de cambios interanuales e estacionales. Evaluación de presión antrópica y dinámica hidrológica.</p>
-                </div>
-                <div class="method-card">
-                    <span class="num">06</span>
-                    <div class="method-icon">📋</div>
-                    <h3>Validación</h3>
-                    <p>Trabajo de campo, fotointerpretación y contraste con bases de datos existentes para calibrar resultados.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- RESULTADOS -->
-    <section class="results" id="resultados">
-        <div class="container">
-            <div class="section-header">
-                <span class="label">Hallazgos Principales</span>
-                <h2>Resultados de la Caracterización</h2>
-                <p>Síntesis de los productos derivados del análisis satelital de los humedales del municipio.</p>
-            </div>
-
-            <div class="results-grid">
-                <div class="result-card">
-                    <div class="value">12+</div>
-                    <div class="desc">Unidades de humedal identificadas y delimitadas</div>
-                </div>
-                <div class="result-card">
-                    <div class="value">~850 ha</div>
-                    <div class="desc">Superficie total estimada de humedales</div>
-                </div>
-                <div class="result-card">
-                    <div class="value">4</div>
-                    <div class="desc">Tipologías principales de humedal detectadas</div>
-                </div>
-                <div class="result-card">
-                    <div class="value">92%</div>
-                    <div class="desc">Exactitud global de la clasificación</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- GALERÍA -->
-    <section id="galeria">
-        <div class="container">
-            <div class="section-header">
-                <span class="label">Visualización</span>
-                <h2>Galería de Imágenes</h2>
-                <p>Composiciones en falso color, índices espectrales y vistas de campo de los sistemas de humedal estudiados.</p>
-            </div>
-
-            <div class="gallery-grid">
-                <div class="gallery-item">
-                    <img src="https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=600&q=80" alt="Vista satelital">
-                    <div class="overlay"><span>Composición RGB natural</span></div>
-                </div>
-                <div class="gallery-item">
-                    <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=600&q=80" alt="Vegetación">
-                    <div class="overlay"><span>Índice de vegetación (NDVI)</span></div>
-                </div>
-                <div class="gallery-item">
-                    <img src="https://images.unsplash.com/photo-1439066615861-d1af74d74000?auto=format&fit=crop&w=600&q=80" alt="Cuerpo de agua">
-                    <div class="overlay"><span>Detección de agua (NDWI)</span></div>
-                </div>
-                <div class="gallery-item">
-                    <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=600&q=80" alt="Humedal">
-                    <div class="overlay"><span>Humedal costero</span></div>
-                </div>
-                <div class="gallery-item">
-                    <img src="https://images.unsplash.com/photo-1505144808419-1957a94ca61e?auto=format&fit=crop&w=600&q=80" alt="Paisaje">
-                    <div class="overlay"><span>Serie multitemporal</span></div>
-                </div>
-                <div class="gallery-item">
-                    <img src="https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=600&q=80" alt="Agua">
-                    <div class="overlay"><span>Dinámica hidrológica</span></div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CONTACTO -->
-    <section class="contact" id="contacto">
-        <div class="container">
-            <div class="section-header">
-                <span class="label">Comunicación</span>
-                <h2>Contacto</h2>
-                <p>Para solicitudes de información, colaboración o acceso a productos cartográficos.</p>
-            </div>
-
-            <div class="contact-grid">
-                <div class="contact-info">
-                    <h3>Información del Proyecto</h3>
-                    <p>Este sitio presenta los resultados de la caracterización satelital de los humedales del Municipio Simón Bolívar. Puede solicitar informes técnicos, capas vectoriales o coordinar visitas de campo.</p>
-
-                    <div class="contact-details">
-                        <div class="contact-item">
-                            <div class="icon">📍</div>
-                            <div>
-                                <strong>Ubicación</strong>
-                                <span>Municipio Simón Bolívar, Estado Anzoátegui, Venezuela</span>
-                            </div>
-                        </div>
-                        <div class="contact-item">
-                            <div class="icon">📧</div>
-                            <div>
-                                <strong>Correo electrónico</strong>
-                                <span>contacto@humedalessimónbolivar.ve</span>
-                            </div>
-                        </div>
-                        <div class="contact-item">
-                            <div class="icon">🏛️</div>
-                            <div>
-                                <strong>Institución</strong>
-                                <span>Proyecto de Caracterización Ambiental</span>
-                            </div>
-                        </div>
+                    <div class="panel-group">
+                        <label class="panel-check">
+                            <input type="checkbox" id="con-relleno" checked>
+                            Con relleno
+                        </label>
                     </div>
+
+                    <div class="panel-group">
+                        <label class="panel-label">Acciones</label>
+                        <button class="tool-btn panel-btn" id="btn-poligono">
+                            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>
+                            Dibujar polígono
+                        </button>
+                        <button class="tool-btn panel-btn" id="btn-editar">
+                            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            Editar vértices
+                        </button>
+                        <button class="tool-btn panel-btn" id="btn-limpiar">
+                            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/></svg>
+                            Limpiar todo
+                        </button>
+                    </div>
+
+                    <div class="panel-stats">
+                        <div>Polígonos: <strong id="count-poligonos">0</strong></div>
+                        <div>Área total: <strong id="area-total">0 ha</strong></div>
+                    </div>
+
+                    <div class="panel-hint">
+                        Dibuja vértice a vértice. Toca el punto de inicio para cerrar. Clic en un polígono para editar o eliminar.
+                    </div>
+                </aside>
+
+                <!-- MAPA CENTRO -->
+                <div class="map-center">
+                    <div id="map"></div>
                 </div>
 
-                <div class="contact-form">
-                    <form onsubmit="event.preventDefault(); alert('Mensaje enviado (demostración). Reemplace este formulario con su backend.');">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="nombre">Nombre</label>
-                                <input type="text" id="nombre" name="nombre" required placeholder="Su nombre">
-                            </div>
-                            <div class="form-group">
-                                <label for="email">Correo electrónico</label>
-                                <input type="email" id="email" name="email" required placeholder="correo@ejemplo.com">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="asunto">Asunto</label>
-                            <select id="asunto" name="asunto">
-                                <option value="">Seleccione una opción</option>
-                                <option value="info">Solicitud de información</option>
-                                <option value="datos">Acceso a datos / mapas</option>
-                                <option value="colaboracion">Colaboración técnica</option>
-                                <option value="otro">Otro</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="mensaje">Mensaje</label>
-                            <textarea id="mensaje" name="mensaje" required placeholder="Escriba su mensaje aquí..."></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Enviar mensaje</button>
-                    </form>
-                </div>
+                <!-- LEYENDA DERECHA -->
+                <aside class="map-legend-panel" id="leyenda-tipos">
+                    <div class="panel-title">Leyenda</div>
+                    <div class="legend-item"><div class="legend-color" style="background:rgba(14,165,233,.45);border-color:#0ea5e9;"></div><span>Marinos y costeros</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background:rgba(34,197,94,.45);border-color:#22c55e;"></div><span>Continentales</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background:rgba(245,158,11,.45);border-color:#f59e0b;"></div><span>Artificiales</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background:rgba(168,85,247,.45);border-color:#a855f7;"></div><span>Otros</span></div>
+                </aside>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- FOOTER -->
-    <footer>
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-brand">
-                    <a href="#" class="logo">
-                        <div class="logo-icon">🛰️</div>
-                        <span>Humedales Simón Bolívar</span>
-                    </a>
-                    <p>Caracterización satelital de los humedales del Municipio Simón Bolívar, Estado Anzoátegui. Información científica para la gestión ambiental territorial.</p>
-                </div>
-                <div class="footer-links">
-                    <h4>Navegación</h4>
-                    <ul>
-                        <li><a href="#proyecto">El Proyecto</a></li>
-                        <li><a href="#metodologia">Metodología</a></li>
-                        <li><a href="#resultados">Resultados</a></li>
-                        <li><a href="#galeria">Galería</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h4>Recursos</h4>
-                    <ul>
-                        <li><a href="#">Informe técnico</a></li>
-                        <li><a href="#">Capas cartográficas</a></li>
-                        <li><a href="#">Metodología detallada</a></li>
-                        <li><a href="#contacto">Contacto</a></li>
-                    </ul>
+<section class="results" id="resultados">
+    <div class="container">
+        <div class="section-header">
+            <span class="label">Hallazgos Principales</span>
+            <h2>Resultados de la Caracterización</h2>
+            <p>Síntesis de los productos derivados del análisis satelital.</p>
+        </div>
+        <div class="results-grid">
+            <div class="result-card"><div class="value">12+</div><div class="desc">Unidades de humedal identificadas</div></div>
+            <div class="result-card"><div class="value">~850 ha</div><div class="desc">Superficie total estimada</div></div>
+            <div class="result-card"><div class="value">4</div><div class="desc">Tipologías principales</div></div>
+            <div class="result-card"><div class="value">92%</div><div class="desc">Exactitud de clasificación</div></div>
+        </div>
+    </div>
+</section>
+
+<section id="galeria">
+    <div class="container">
+        <div class="section-header">
+            <span class="label">Visualización</span>
+            <h2>Galería de Imágenes</h2>
+            <p>Composiciones e índices espectrales de los sistemas de humedal.</p>
+        </div>
+        <div class="gallery-grid">
+            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=600&q=80" alt=""><div class="overlay"><span>RGB natural</span></div></div>
+            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=600&q=80" alt=""><div class="overlay"><span>NDVI</span></div></div>
+            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1439066615861-d1af74d74000?auto=format&fit=crop&w=600&q=80" alt=""><div class="overlay"><span>NDWI</span></div></div>
+            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=600&q=80" alt=""><div class="overlay"><span>Humedal costero</span></div></div>
+            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1505144808419-1957a94ca61e?auto=format&fit=crop&w=600&q=80" alt=""><div class="overlay"><span>Serie multitemporal</span></div></div>
+            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=600&q=80" alt=""><div class="overlay"><span>Dinámica hidrológica</span></div></div>
+        </div>
+    </div>
+</section>
+
+<section class="contact" id="contacto">
+    <div class="container">
+        <div class="section-header">
+            <span class="label">Comunicación</span>
+            <h2>Contacto</h2>
+            <p>Para solicitudes de información o acceso a productos cartográficos.</p>
+        </div>
+        <div class="contact-grid">
+            <div class="contact-info">
+                <h3>Información del Proyecto</h3>
+                <p>Puede solicitar informes técnicos, capas vectoriales o coordinar visitas de campo.</p>
+                <div class="contact-details">
+                    <div class="contact-item"><div class="icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div><strong>Ubicación</strong><span>Municipio Simón Bolívar, Estado Anzoátegui, Venezuela</span></div></div>
+                    <div class="contact-item"><div class="icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div><div><strong>Correo</strong><span>contacto@humedalessimónbolivar.ve</span></div></div>
+                    <div class="contact-item"><div class="icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg></div><div><strong>Institución</strong><span>Proyecto de Caracterización Ambiental</span></div></div>
                 </div>
             </div>
-            <div class="footer-bottom">
-                <span>© 2025 Caracterización Satelital de Humedales — Municipio Simón Bolívar, Anzoátegui</span>
-                <span>Teledetección · Gestión Ambiental</span>
+            <div class="contact-form">
+                <form onsubmit="event.preventDefault();alert('Mensaje enviado (demostración).');">
+                    <div class="form-row">
+                        <div class="form-group"><label for="nombre">Nombre</label><input type="text" id="nombre" required placeholder="Su nombre"></div>
+                        <div class="form-group"><label for="email">Correo</label><input type="email" id="email" required placeholder="correo@ejemplo.com"></div>
+                    </div>
+                    <div class="form-group"><label for="asunto">Asunto</label><select id="asunto"><option value="">Seleccione</option><option>Solicitud de información</option><option>Acceso a datos</option><option>Colaboración</option></select></div>
+                    <div class="form-group"><label for="mensaje">Mensaje</label><textarea id="mensaje" required placeholder="Escriba su mensaje..."></textarea></div>
+                    <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">Enviar mensaje</button>
+                </form>
             </div>
         </div>
-    </footer>
+    </div>
+</section>
 
-    <script>
-        // Header scroll effect
-        const header = document.getElementById('header');
-        window.addEventListener('scroll', () => {
-            header.classList.toggle('scrolled', window.scrollY > 50);
-        });
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a href="#" class="logo"><div class="logo-icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div><span>Humedales para la vida</span></a>
+                <p>Caracterización satelital de los humedales del Municipio Simón Bolívar, Estado Anzoátegui.</p>
+            </div>
+            <div class="footer-links"><h4>Navegación</h4><ul><li><a href="#proyecto">El Proyecto</a></li><li><a href="#mapa">Mapa</a></li><li><a href="#resultados">Resultados</a></li></ul></div>
+            <div class="footer-links"><h4>Recursos</h4><ul><li><a href="#">Informe técnico</a></li><li><a href="#contacto">Contacto</a></li></ul></div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2025 Caracterización Satelital de Humedales — Municipio Simón Bolívar</span>
+            <span>Teledetección · Gestión Ambiental</span>
+        </div>
+    </div>
+</footer>
 
-        // Mobile menu
-        const menuToggle = document.getElementById('menu-toggle');
-        const navMenu = document.getElementById('nav-menu');
-        menuToggle.addEventListener('click', () => {
-            navMenu.classList.toggle('active');
-        });
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+<script>
+const header=document.getElementById('header');
+window.addEventListener('scroll',()=>header.classList.toggle('scrolled',window.scrollY>50));
+document.getElementById('menu-toggle').addEventListener('click',()=>document.getElementById('nav-menu').classList.toggle('active'));
+document.querySelectorAll('#nav-menu a').forEach(a=>a.addEventListener('click',()=>document.getElementById('nav-menu').classList.remove('active')));
 
-        // Close menu on link click
-        document.querySelectorAll('#nav-menu a').forEach(link => {
-            link.addEventListener('click', () => {
-                navMenu.classList.remove('active');
-            });
-        });
-    </script>
+// MAPA
+const centro = [10.136, -64.686];
+const map = L.map('map', { center: centro, zoom: 12, maxZoom: 18, minZoom: 8 });
+
+const esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri', maxZoom: 18, maxNativeZoom: 17
+});
+const cartoVoyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd', maxZoom: 18, maxNativeZoom: 18
+});
+const cartoLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd', maxZoom: 18, maxNativeZoom: 18
+});
+const esriTopo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri', maxZoom: 18, maxNativeZoom: 16
+});
+esriSat.addTo(map);
+L.control.layers({
+    'Satélite (Esri)': esriSat,
+    'Callejero (Carto)': cartoVoyager,
+    'Claro (Carto)': cartoLight,
+    'Topográfico (Esri)': esriTopo
+}, null, { position: 'topright' }).addTo(map);
+
+// Tipos de humedal y colores
+const TIPOS = {
+    marino:       { nombre: 'Marinos y costeros', color: '#0ea5e9' },
+    continental:  { nombre: 'Continentales',      color: '#22c55e' },
+    artificial:   { nombre: 'Artificiales',       color: '#f59e0b' },
+    otro:         { nombre: 'Otros',              color: '#a855f7' }
+};
+
+const drawnItems = new L.FeatureGroup();
+map.addLayer(drawnItems);
+
+function estiloActual() {
+    const tipo = document.getElementById('tipo-humedal').value;
+    const relleno = document.getElementById('con-relleno').checked;
+    const c = TIPOS[tipo].color;
+    return {
+        color: c,
+        weight: 2.5,
+        opacity: 0.95,
+        fillColor: c,
+        fillOpacity: relleno ? 0.35 : 0
+    };
+}
+
+// Mientras se traza: SOLO línea, sin relleno interno
+function estiloDibujo() {
+    const tipo = document.getElementById('tipo-humedal').value;
+    const c = TIPOS[tipo].color;
+    return {
+        color: c,
+        weight: 2.5,
+        opacity: 1,
+        fillColor: c,
+        fillOpacity: 0
+    };
+}
+
+function popupHTML(layer) {
+    const tipo = layer._tipoHumedal || 'otro';
+    const info = TIPOS[tipo] || TIPOS.otro;
+    const detalle = layer._detalleOtro ? ' — ' + layer._detalleOtro : '';
+    const area = layer._areaHa != null ? layer._areaHa.toFixed(2) + ' ha' : '—';
+    return `<div style="min-width:170px;font-family:Inter,sans-serif;">
+        <div style="font-weight:700;font-size:14px;margin-bottom:4px;color:#0f172a;">${info.nombre}${detalle}</div>
+        <div style="font-size:12px;color:#64748b;margin-bottom:6px;">Área aprox.: <b>${area}</b></div>
+        <div style="font-size:11px;color:#94a3b8;margin-bottom:10px;">Arrastra los vértices blancos para editar la forma.</div>
+        <button onclick="window._eliminarCapa(${L.stamp(layer)})"
+            style="width:100%;padding:8px 12px;background:#dc2626;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px;">
+            Eliminar polígono
+        </button>
+    </div>`;
+}
+
+function areaHa(ll) {
+    const R = 6371000;
+    let a = 0;
+    if (!ll || ll.length < 3) return 0;
+    for (let i = 0; i < ll.length; i++) {
+        const j = (i + 1) % ll.length;
+        const xi = ll[i].lng * Math.PI / 180, yi = ll[i].lat * Math.PI / 180;
+        const xj = ll[j].lng * Math.PI / 180, yj = ll[j].lat * Math.PI / 180;
+        a += (xj - xi) * (2 + Math.sin(yi) + Math.sin(yj));
+    }
+    return Math.abs(a * R * R / 2) / 10000;
+}
+
+function actualizarContadores() {
+    const layers = drawnItems.getLayers();
+    document.getElementById('count-poligonos').textContent = layers.length;
+    let t = 0;
+    layers.forEach(l => { if (l._areaHa) t += l._areaHa; });
+    document.getElementById('area-total').textContent = t.toFixed(2) + ' ha';
+}
+
+function recalcularArea(layer) {
+    let ll = layer.getLatLngs()[0];
+    if (Array.isArray(ll[0])) ll = ll[0];
+    layer._areaHa = areaHa(ll);
+}
+
+function registrarCapa(layer) {
+    const tipo = document.getElementById('tipo-humedal').value;
+    layer._tipoHumedal = tipo;
+    if (tipo === 'otro') {
+        const det = (document.getElementById('otro-especificar').value || '').trim();
+        layer._detalleOtro = det || 'Sin especificar';
+    }
+    layer.setStyle(estiloActual());
+    recalcularArea(layer);
+
+    layer.bindPopup(popupHTML(layer), { closeButton: true, autoPan: true });
+
+    // Clic: abrir popup + activar edición de vértices
+    layer.on('click', function (e) {
+        L.DomEvent.stopPropagation(e);
+        // Desactivar dibujo si estaba activo
+        if (drawHandler) {
+            try { drawHandler.disable(); } catch (err) {}
+            drawHandler = null;
+            document.getElementById('btn-poligono').classList.remove('active');
+        }
+        // Activar edición de este polígono
+        if (editHandler) {
+            try { editHandler.disable(); } catch (err) {}
+            editHandler = null;
+            document.getElementById('btn-editar').classList.remove('active');
+        }
+        editHandler = new L.EditToolbar.Edit(map, { featureGroup: drawnItems });
+        editHandler.enable();
+        document.getElementById('btn-editar').classList.add('active');
+        this.openPopup();
+    });
+
+    drawnItems.addLayer(layer);
+    actualizarContadores();
+}
+
+window._eliminarCapa = function (stamp) {
+    drawnItems.eachLayer(function (l) {
+        if (L.stamp(l) === stamp) {
+            drawnItems.removeLayer(l);
+            map.closePopup();
+            actualizarContadores();
+        }
+    });
+};
+
+let drawHandler = null;
+let editHandler = null;
+
+document.getElementById('btn-poligono').addEventListener('click', function () {
+    if (drawHandler) {
+        drawHandler.disable();
+        drawHandler = null;
+        this.classList.remove('active');
+        return;
+    }
+    if (editHandler) {
+        editHandler.disable();
+        editHandler = null;
+        document.getElementById('btn-editar').classList.remove('active');
+    }
+    drawHandler = new L.Draw.Polygon(map, {
+        allowIntersection: false,
+        showArea: false,
+        metric: true,
+        shapeOptions: estiloDibujo(),
+        guidelineDistance: 20,
+        maxPoints: 0
+    });
+    drawHandler.enable();
+    this.classList.add('active');
+});
+
+document.getElementById('btn-editar').addEventListener('click', function () {
+    if (editHandler) {
+        editHandler.disable();
+        editHandler = null;
+        this.classList.remove('active');
+        return;
+    }
+    if (drawHandler) {
+        drawHandler.disable();
+        drawHandler = null;
+        document.getElementById('btn-poligono').classList.remove('active');
+    }
+    editHandler = new L.EditToolbar.Edit(map, { featureGroup: drawnItems });
+    editHandler.enable();
+    this.classList.add('active');
+});
+
+document.getElementById('btn-limpiar').addEventListener('click', function () {
+    if (drawnItems.getLayers().length === 0) return;
+    if (confirm('¿Eliminar todos los polígonos de humedales?')) {
+        drawnItems.clearLayers();
+        actualizarContadores();
+    }
+});
+
+// Actualizar estilo en vivo mientras se dibuja
+// Mostrar campo "especificar" solo si elige Otros
+document.getElementById('tipo-humedal').addEventListener('change', function () {
+    const inp = document.getElementById('otro-especificar');
+    if (this.value === 'otro') {
+        inp.style.display = 'inline-block';
+        inp.focus();
+    } else {
+        inp.style.display = 'none';
+        inp.value = '';
+    }
+    if (drawHandler && drawHandler.setOptions) {
+        drawHandler.setOptions({ shapeOptions: estiloDibujo() });
+    }
+});
+
+document.getElementById('con-relleno').addEventListener('change', function () {
+    if (drawHandler && drawHandler.options) {
+        drawHandler.setOptions({ shapeOptions: estiloDibujo() });
+    }
+});
+
+map.on(L.Draw.Event.CREATED, function (e) {
+    const layer = e.layer;
+    registrarCapa(layer);
+    if (drawHandler) {
+        drawHandler.disable();
+        drawHandler = null;
+        document.getElementById('btn-poligono').classList.remove('active');
+    }
+});
+
+map.on(L.Draw.Event.EDITED, function (e) {
+    e.layers.eachLayer(function (layer) {
+        recalcularArea(layer);
+        layer.setPopupContent(popupHTML(layer));
+    });
+    actualizarContadores();
+});
+
+// Clic en el mapa vacío: salir de modo edición
+map.on('click', function () {
+    if (editHandler) {
+        try { editHandler.disable(); } catch (err) {}
+        editHandler = null;
+        document.getElementById('btn-editar').classList.remove('active');
+    }
+});
+
+map.on(L.Draw.Event.DELETED, actualizarContadores);
+
+const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) setTimeout(() => map.invalidateSize(), 200); });
+}, { threshold: 0.1 });
+obs.observe(document.getElementById('mapa'));
+</script>
 </body>
 </html>
